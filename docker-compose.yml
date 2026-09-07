@@ -1,0 +1,31 @@
+services:
+  app:
+    build: .
+    init: true
+    restart: unless-stopped
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${APP_PORT:-3210}:3210"
+    environment:
+      APP_URL: ${APP_URL:-http://localhost:3210}
+      APP_PASSWORD: ${APP_PASSWORD:-}
+      APP_SECRET_KEY: ${APP_SECRET_KEY:-}
+      SEED_DEMO: ${SEED_DEMO:-false}
+      SCHEDULER_SECONDS: ${SCHEDULER_SECONDS:-600}
+      WALLET_HORIZON_DAYS: ${WALLET_HORIZON_DAYS:-30}
+      ALLOW_PRIVATE_NETWORK: ${ALLOW_PRIVATE_NETWORK:-false}
+      OUTBOUND_ALLOWED_HOSTS: ${OUTBOUND_ALLOWED_HOSTS:-}
+      TELEGRAM_ENABLED: ${TELEGRAM_ENABLED:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      NTFY_ENABLED: ${NTFY_ENABLED:-}
+      NTFY_SERVER_URL: ${NTFY_SERVER_URL:-}
+      NTFY_TOPIC: ${NTFY_TOPIC:-}
+      NTFY_TOKEN: ${NTFY_TOKEN:-}
+    volumes:
+      - lifecycle_data:/data
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+volumes:
+  lifecycle_data:

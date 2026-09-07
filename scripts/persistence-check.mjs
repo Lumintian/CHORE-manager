@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+const base = process.env.SMOKE_URL ?? 'http://localhost:3210';
+const login = await fetch(`${base}/api/login`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-App-Request': 'lifecycle', Origin: base }, body: JSON.stringify({ password: process.env.SMOKE_PASSWORD }) });
+assert.equal(login.status, 200);
+const response = await fetch(`${base}/api/snapshot`, { headers: { Cookie: login.headers.get('set-cookie').split(';')[0] } });
+assert.equal(response.status, 200);
+const state = await response.json();
+assert.ok(state.events.some(e => e.event_type === 'PAYMENT_RECEIVED'));
+assert.ok(state.events.some(e => e.event_type === 'EXTENDED'));
+assert.ok(state.services.some(s => s.name === 'HTTP smoke edited' && s.status === 'cancelled'));
+console.log('Restart persistence passed: payment, extension and edited service survived.');

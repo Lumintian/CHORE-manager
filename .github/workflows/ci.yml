@@ -1,0 +1,68 @@
+name: Verify MVP
+on:
+  push:
+    branches: [main, 'feat/**']
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test-and-compose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      APP_PASSWORD: ci-disposable-test-password
+      SMOKE_PASSWORD: ci-disposable-test-password
+      APP_URL: http://localhost:3210
+      SEED_DEMO: 'true'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm test
+      - name: Build and start the production container
+        run: |
+          docker compose config --quiet
+          docker compose up -d --build --wait --wait-timeout 180
+      - name: Exercise real HTTP routes and actions
+        run: npm run smoke
+      - name: Restart without destroying the database
+        run: |
+          docker compose restart
+          for i in $(seq 1 30); do
+            curl --fail --silent http://localhost:3210/healthz && break
+            sleep 2
+          done
+          node scripts/persistence-check.mjs
+      - name: Create and verify a consistent backup
+        run: |
+          docker compose exec -T app node dist/server/main.js --backup /data/ci-backup.sqlite
+          docker compose exec -T app node --input-type=module -e "import {DatabaseSync} from 'node:sqlite'; const db=new DatabaseSync('/data/ci-backup.sqlite'); const r=db.prepare('PRAGMA integrity_check').get(); if(r.integrity_check!=='ok')process.exit(1); db.close()"
+      - name: Fresh demo for browser end-to-end checks
+        run: |
+          docker compose down -v
+          docker compose up -d --wait --wait-timeout 120
+          python -m pip install playwright==1.57.0
+          python -m playwright install --with-deps chromium
+          python scripts/browser-smoke.py
+      - name: Container logs
+        if: always()
+        run: docker compose logs --no-color
+      - name: UI screenshots
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: browser-smoke-screenshots
+          path: playwright-report/*.png
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Cleanup disposable volumes
+        if: always()
+        run: docker compose down -v
