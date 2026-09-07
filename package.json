@@ -1,0 +1,19 @@
+{
+  "name": "service-lifecycle-manager",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Self-hosted service lifecycle manager for subscriptions, shared payments and recurring maintenance.",
+  "engines": { "node": ">=22.16.0" },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/server/main.js",
+    "dev": "node scripts/dev.mjs",
+    "test": "npm run build && node --test dist/test/*.test.js",
+    "seed": "npm run build && node dist/server/main.js --seed",
+    "backup": "node dist/server/main.js --backup",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "devDependencies": { "@types/node": "24.0.4", "typescript": "5.8.3" }
+}
