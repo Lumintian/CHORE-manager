@@ -6,7 +6,7 @@ All requests/responses are JSON. Money is a decimal string, dates are `YYYY-MM-D
 
 `GET /api/session` reports `authenticated` and `setup_required`. `POST /api/setup` sets the first password once. `POST /api/login` signs in; both accept `{ "password": "..." }` and set the session cookie. `POST /api/logout` revokes it.
 
-All administrative mutations require `Content-Type: application/json` when carrying a body, `X-App-Request: lifecycle`, and a matching configured `Origin` if present. JSON bodies are limited to 64 KiB. Browser credentials are same-origin cookies. There is no general-purpose API key in this MVP.
+All administrative mutations require `Content-Type: application/json` when carrying a body, `X-App-Request: chore`, and a matching configured `Origin` if present. JSON bodies are limited to 64 KiB. Browser credentials are same-origin cookies (`chore_session`). There is no general-purpose API key in this MVP.
 
 ## Read model and CRUD
 

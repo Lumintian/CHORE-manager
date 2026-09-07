@@ -11,7 +11,7 @@ COPY scripts ./scripts
 RUN npm test
 
 FROM node:24-bookworm-slim AS runtime
-ENV NODE_ENV=production HOST=0.0.0.0 PORT=3210 DATABASE_PATH=/data/lifecycle.sqlite
+ENV NODE_ENV=production HOST=0.0.0.0 PORT=3210 DATABASE_PATH=/data/chore.sqlite
 WORKDIR /app
 RUN mkdir -p /data && chown node:node /data
 COPY --from=build --chown=node:node /app/dist/server ./dist/server

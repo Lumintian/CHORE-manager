@@ -6,7 +6,7 @@ if (!password || password.length < 12) throw new Error('Set SMOKE_PASSWORD (12+ 
 let cookie = '';
 async function request(path, method = 'GET', body, expected = 200, authenticated = true) {
   const response = await fetch(base + path, { method, redirect: 'manual', headers: {
-    'Content-Type': 'application/json', 'X-App-Request': 'lifecycle', Origin: base,
+    'Content-Type': 'application/json', 'X-App-Request': 'chore', Origin: base,
     ...(authenticated && cookie ? { Cookie: cookie } : {})
   }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
   assert.equal(response.status, expected, `${method} ${path}: ${response.status}`);

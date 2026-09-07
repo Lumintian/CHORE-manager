@@ -1,9 +1,9 @@
 {
-  "name": "service-lifecycle-manager",
+  "name": "chore",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Self-hosted service lifecycle manager for subscriptions, shared payments and recurring maintenance.",
+  "description": "CHORE (Cashflow, Health & Obligation Recurrence Engine): self-hosted manager for subscriptions, shared payments and recurring maintenance.",
   "engines": { "node": ">=22.16.0" },
   "scripts": {
     "build": "node scripts/build.mjs",

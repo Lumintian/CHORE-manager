@@ -8,7 +8,7 @@ import { AppError, choice, integer, object, requireThat, text } from './util.js'
 import { seedDemo } from './seed.js';
 
 function cookie(request: IncomingMessage): string {
-  return (request.headers.cookie ?? '').split(';').map(s => s.trim()).find(s => s.startsWith('slm_session='))?.slice(12) ?? '';
+  return (request.headers.cookie ?? '').split(';').map(s => s.trim()).find(s => s.startsWith('chore_session='))?.slice(14) ?? '';
 }
 async function body(request: IncomingMessage): Promise<Input> {
   requireThat((request.headers['content-type'] ?? '').split(';')[0] === 'application/json', 'Use Content-Type: application/json', 415);
@@ -26,9 +26,9 @@ function json(response: ServerResponse, status: number, value: unknown) {
 }
 export function createApp(domain: Domain, notifications: Notifications, auth: Auth, appUrl: string) {
   const origin = new URL(appUrl).origin, secure = origin.startsWith('https:');
-  const setCookie = (response: ServerResponse, token: string) => response.setHeader('Set-Cookie', `slm_session=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${token ? 604800 : 0}${secure ? '; Secure' : ''}`);
+  const setCookie = (response: ServerResponse, token: string) => response.setHeader('Set-Cookie', `chore_session=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${token ? 604800 : 0}${secure ? '; Secure' : ''}`);
   const checkMutation = (request: IncomingMessage) => {
-    requireThat(request.headers['x-app-request'] === 'lifecycle', 'Missing X-App-Request header', 403);
+    requireThat(request.headers['x-app-request'] === 'chore', 'Missing X-App-Request header', 403);
     requireThat(!request.headers.origin || request.headers.origin === origin, 'Origin does not match APP_URL', 403);
   };
   const server = createServer(async (request, response) => {

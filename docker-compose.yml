@@ -22,10 +22,10 @@ services:
       NTFY_TOPIC: ${NTFY_TOPIC:-}
       NTFY_TOKEN: ${NTFY_TOKEN:-}
     volumes:
-      - lifecycle_data:/data
+      - chore_data:/data
     security_opt:
       - no-new-privileges:true
     cap_drop:
       - ALL
 volumes:
-  lifecycle_data:
+  chore_data:

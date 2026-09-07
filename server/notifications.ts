@@ -135,7 +135,7 @@ export class Notifications {
   async test(channel: Channel) {
     const config = this.effective(); this.validate(config);
     requireThat(channel === 'telegram' ? config.telegram_token && config.telegram_chat_id : config.ntfy_topic, 'Configure this channel before testing');
-    const payload = channel === 'telegram' ? { chat_id: config.telegram_chat_id, text: 'Lifecycle test notification. Connection is working.' } : { topic: config.ntfy_topic, title: 'Lifecycle', message: 'Test notification. Connection is working.' };
+    const payload = channel === 'telegram' ? { chat_id: config.telegram_chat_id, text: 'CHORE test notification. Connection is working.' } : { topic: config.ntfy_topic, title: 'CHORE', message: 'Test notification. Connection is working.' };
     await this.send(channel, payload, config); return { ok: true, message: 'Test notification sent' };
   }
   async pollTelegram(): Promise<void> {

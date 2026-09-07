@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 const base = process.env.SMOKE_URL ?? 'http://localhost:3210';
-const login = await fetch(`${base}/api/login`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-App-Request': 'lifecycle', Origin: base }, body: JSON.stringify({ password: process.env.SMOKE_PASSWORD }) });
+const login = await fetch(`${base}/api/login`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-App-Request': 'chore', Origin: base }, body: JSON.stringify({ password: process.env.SMOKE_PASSWORD }) });
 assert.equal(login.status, 200);
 const response = await fetch(`${base}/api/snapshot`, { headers: { Cookie: login.headers.get('set-cookie').split(';')[0] } });
 assert.equal(response.status, 200);

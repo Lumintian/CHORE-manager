@@ -1,8 +1,8 @@
-# Lifecycle
+# CHORE
 
-**Self-hosted service lifecycle manager for subscriptions, shared payments and recurring maintenance.**
+**Cashflow, Health & Obligation Recurrence Engine (CHORE): self-hosted manager for subscriptions, shared payments and recurring maintenance.**
 
-Lifecycle starts with an **Action Center**, not a spending chart. A service can be just a name and a note. Add payment schedules, maintenance rules, prepaid funding, or automation only when needed.
+CHORE starts with an **Action Center**, not a spending chart. A service can be just a name and a note. Add payment schedules, maintenance rules, prepaid funding, or automation only when needed.
 
 ```
 Service -> Rule -> Obligation -> Notification -> Action -> Event
@@ -17,15 +17,14 @@ This is not a conventional subscription tracker: incoming shared payments and ou
 Requires Docker Engine with the Compose v2 plugin and network access to download the Node image and build dependencies.
 
 ```sh
-git clone https://github.com/Lumintian/oai-repo.git
-cd oai-repo
-git checkout feat/service-lifecycle-mvp  # Until the MVP PR is merged.
+git clone https://github.com/Lumintian/CHORE-manager.git
+cd CHORE-manager
 docker compose up -d
 ```
 
 Open **http://localhost:3210** and set a password of at least 12 characters. There is no default password. Setup is available only once. By default the published port binds to loopback, so complete setup locally or through a trusted tunnel.
 
-The first build also runs the automated tests. One application container serves the UI, API, scheduler and Telegram poller. SQLite and the generated encryption key live in the persistent `lifecycle_data` volume at `/data`.
+The first build also runs the automated tests. One application container serves the UI, API, scheduler and Telegram poller. SQLite and the generated encryption key live in the persistent `chore_data` volume at `/data`.
 
 The workspace starts empty. Click **Explore demo workspace** on the empty Action Center, or run:
 
@@ -102,7 +101,7 @@ Paused/cancelled/expired services stop generating reminders and future wallet de
 
 Create your bot using Telegram's **BotFather**, start a conversation with it, and obtain the numeric chat ID for that private chat or a trusted group. Enter the bot token and chat ID in Notifications, enable Telegram, save, and **Send Telegram test**. A channel can also be tested while disabled once its configuration is saved.
 
-Lifecycle uses Bot API `sendMessage` with inline buttons, polls `getUpdates` every five seconds, and acknowledges button taps with `answerCallbackQuery`. No inbound Telegram webhook or public application URL is needed for callback buttons. Use a dedicated bot: an existing Telegram webhook or another poller will conflict with polling. Polling errors are surfaced on the settings page without exposing provider response bodies.
+CHORE uses Bot API `sendMessage` with inline buttons, polls `getUpdates` every five seconds, and acknowledges button taps with `answerCallbackQuery`. No inbound Telegram webhook or public application URL is needed for callback buttons. Use a dedicated bot: an existing Telegram webhook or another poller will conflict with polling. Polling errors are surfaced on the settings page without exposing provider response bodies.
 
 The callback's chat ID must match the configured chat. **Every member of a configured group is trusted to execute its actions**; there is no per-member permission system. URL buttons open their URL directly. Action buttons carry only a scoped random token, not client-selected service IDs.
 
@@ -160,14 +159,14 @@ Do not copy only a live `.sqlite` file while WAL writes are running. Use the sup
 
 ```sh
 mkdir -p backups
-docker compose exec app node dist/server/main.js --backup /data/backups/lifecycle-2026-09-07.sqlite
-docker compose cp app:/data/backups/lifecycle-2026-09-07.sqlite ./backups/
+docker compose exec app node dist/server/main.js --backup /data/backups/chore-2026-09-07.sqlite
+docker compose cp app:/data/backups/chore-2026-09-07.sqlite ./backups/
 docker compose cp app:/data/secret.key ./backups/secret.key
 ```
 
 If `APP_SECRET_KEY` is used instead of a key file, securely back up that environment key. Also preserve relevant `.env` overrides separately. Backups contain personal service/payment history, session hashes and encrypted configuration: store them privately.
 
-To restore, stop the application, place the backup at `/data/lifecycle.sqlite` in its volume, remove **old** `lifecycle.sqlite-wal` and `lifecycle.sqlite-shm` sidecars from the stopped target, restore the matching `secret.key` (or environment key), and ensure ownership permits the image's `node` user to read/write the directory. Restart and verify service history and notification configuration. Never swap a database underneath a running process. `PRAGMA user_version` provides schema versioning and newer-than-supported databases are rejected.
+To restore, stop the application, place the backup at `/data/chore.sqlite` in its volume, remove **old** `.sqlite-wal` and `.sqlite-shm` sidecars from the stopped target, restore the matching `secret.key` (or environment key), and ensure ownership permits the image's `node` user to read/write the directory. Restart and verify service history and notification configuration. Never swap a database underneath a running process. `PRAGMA user_version` provides schema versioning and newer-than-supported databases are rejected.
 
 ## Environment reference
 
@@ -176,7 +175,7 @@ To restore, stop the application, place the backup at `/data/lifecycle.sqlite` i
 | `APP_URL` | `http://localhost:3210`; exact browser origin and ntfy callback origin, no subpath. |
 | `APP_PASSWORD` | Empty: first-run setup. Nonempty: override with a 12-256-character password. |
 | `APP_SECRET_KEY` | Empty: generated key file. Otherwise exactly 64 hex characters. |
-| `DATABASE_PATH` | Native: `./data/lifecycle.sqlite`; Docker: `/data/lifecycle.sqlite`. |
+| `DATABASE_PATH` | Native: `./data/chore.sqlite`; Docker: `/data/chore.sqlite`. |
 | `KEY_FILE` | `secret.key` in the database directory; native override available. |
 | `HOST`, `PORT` | Native bind `127.0.0.1:3210`; image binds `0.0.0.0:3210` internally. |
 | `BIND_ADDRESS`, `APP_PORT` | Compose published address/port: `127.0.0.1`, `3210`. Changing the port also requires updating `APP_URL`. |

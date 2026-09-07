@@ -17,7 +17,7 @@ function fixture(t: TestContext, handler?: Transport) {
   const calls: OutboundRequest[] = [];
   const transport: Transport = async req => { calls.push(req); return handler ? handler(req) : { status: 200, body: JSON.stringify({ ok: true, result: req.url.endsWith('/getUpdates') ? [] : { message_id: 1 } }) }; };
   const domain = new Domain(store, box, transport, () => now);
-  const notifications = new Notifications(domain, box, transport, 'https://lifecycle.example', 600, 30, {});
+  const notifications = new Notifications(domain, box, transport, 'https://chore.example', 600, 30, {});
   t.after(() => store.close());
   return { domain, store, box, calls, notifications, advance: (milliseconds: number) => { now = new Date(now.valueOf() + milliseconds); } };
 }
@@ -191,14 +191,14 @@ test('preview payloads contain native Telegram/ntfy actions without minting toke
   const tg = pt.telegram as { reply_markup: { inline_keyboard: { callback_data?: string; url?: string }[][] } };
   assert.ok(tg.reply_markup.inline_keyboard[0][0].callback_data!.startsWith('a:')); assert.ok(Buffer.byteLength(tg.reply_markup.inline_keyboard[0][0].callback_data!) <= 64);
   const ntfy = pt.ntfy as { actions: { action: string; method?: string; url: string }[] };
-  assert.equal(ntfy.actions[0].action, 'http'); assert.equal(ntfy.actions[0].method, 'POST'); assert.match(ntfy.actions[0].url, /^https:\/\/lifecycle.example\/api\/actions\//); assert.ok(ntfy.actions.some(a => a.action === 'view'));
+  assert.equal(ntfy.actions[0].action, 'http'); assert.equal(ntfy.actions[0].method, 'POST'); assert.match(ntfy.actions[0].url, /^https:\/\/chore.example\/api\/actions\//); assert.ok(ntfy.actions.some(a => a.action === 'view'));
 });
 test('reminders select only the nearest applicable threshold', t => {
   const f = fixture(t); seedDemo(f.domain); const o = f.domain.snapshot().obligations[0];
   for (const [days, expected] of [[31, null], [20, 30], [5, 7], [2, 3], [1, 1], [0, 0], [-100, -1]] as const) assert.equal(reminderThreshold({ ...o, days, thresholds: [30, 7, 3, 1] }), expected);
 });
 test('notification deduplication survives reopening a SQLite database', async t => {
-  const dir = mkdtempSync(join(tmpdir(), 'lifecycle-test-')); t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const dir = mkdtempSync(join(tmpdir(), 'chore-test-')); t.after(() => rmSync(dir, { recursive: true, force: true }));
   const path = join(dir, 'app.sqlite'), box = new SecretBox(Buffer.alloc(32, 4)); let sends = 0;
   const transport: Transport = async () => { sends++; return { status: 200, body: '{"ok":true,"result":{}}' }; };
   for (let iteration = 0; iteration < 2; iteration++) {
@@ -255,7 +255,7 @@ test('HTTP API enforces login, CSRF, bounded JSON and server-bound token context
   await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
   const base = `http://127.0.0.1:${(server.address() as { port: number }).port}`; let session = '';
   const request = async (path: string, method = 'GET', data?: unknown, extra: Record<string, string> = {}) => {
-    const r = await fetch(`${base}${path}`, { method, headers: { 'Content-Type': 'application/json', 'X-App-Request': 'lifecycle', Cookie: session, ...extra }, ...(data === undefined ? {} : { body: typeof data === 'string' ? data : JSON.stringify(data) }) });
+    const r = await fetch(`${base}${path}`, { method, headers: { 'Content-Type': 'application/json', 'X-App-Request': 'chore', Cookie: session, ...extra }, ...(data === undefined ? {} : { body: typeof data === 'string' ? data : JSON.stringify(data) }) });
     const c = r.headers.get('set-cookie'); if (c) session = c.split(';')[0]; return r;
   };
   try {
@@ -263,6 +263,7 @@ test('HTTP API enforces login, CSRF, bounded JSON and server-bound token context
     assert.equal((await request('/api/setup', 'POST', { password: 'valid-test-password' }, { 'X-App-Request': '' })).status, 403);
     assert.equal((await request('/api/setup', 'POST', { password: 'valid-test-password' }, { Origin: 'https://evil.example' })).status, 403);
     assert.equal((await request('/api/setup', 'POST', { password: 'valid-test-password' })).status, 201); assert.ok(session);
+    assert.ok(session.startsWith('chore_session='));
     assert.equal((await request('/api/services', 'POST', '{')).status, 400);
     assert.equal((await request('/api/services', 'POST', { name: 'x'.repeat(70000) })).status, 413);
     const service = await (await request('/api/services', 'POST', { name: 'HTTP test' })).json() as { id: string };
